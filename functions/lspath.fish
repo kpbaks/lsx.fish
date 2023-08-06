@@ -1,4 +1,10 @@
 function lspath --description 'List the paths in $PATH in a human readable way'
+    set -l options (fish_opt --short=h --long=help)
+    set -a options (fish_opt --short=n --long=no-legend)
+    if not argparse $options -- $argv
+        return 1
+    end
+
     if not isatty stdout
         # stdout is not a tty, so we can't colorize the output
         # it is probably piped to another program
@@ -16,11 +22,13 @@ function lspath --description 'List the paths in $PATH in a human readable way'
     set -l yellow (set_color yellow)
     set -l italics (set_color --italics)
 
-    printf "paths in %s\$PATH%s (%spaths with lower numbers are searched first%s):\n" $blue $reset $italics $reset
-    printf "- paths colored %sred%s do not exist!\n" $red $reset
-    printf "- paths colored %syellow%s do not contain any executables\n" $yellow $reset
-    printf "- the number in parentheses indicate how many executables are in that directory\n"
-    echo ""
+    if not set --query _flag_no_legend
+        printf "paths in %s\$PATH%s (%spaths with lower numbers are searched first%s):\n" $blue $reset $italics $reset
+        printf "- paths colored %sred%s do not exist!\n" $red $reset
+        printf "- paths colored %syellow%s do not contain any executables\n" $yellow $reset
+        printf "- the number in parentheses indicate how many executables are in that directory\n"
+        echo ""
+    end
 
     set -l paths_not_found_count 0
     set -l paths_with_executables_count 0
