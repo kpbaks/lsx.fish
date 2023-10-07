@@ -7,6 +7,8 @@ function lsc
     set --local checkmark ✓
     set --local xmark ✗
 
+    # TODO: <kpbaks 2023-10-07 21:19:08> color dirname and basename differently
+
     begin
         if command --query gcc
             set --local gcc_version (command gcc --version | string match --regex --groups-only "(\d+\.\d+\.\d+)\$")
@@ -20,6 +22,13 @@ function lsc
             printf "%s%s%s: %s %s%s%s\n" $command_color (command --search clang) $reset $clang_version $green $checkmark $reset
         else
             printf "clang: %snot installed %s%s\n" $red $xmark $reset
+        end
+
+        if command --query strip
+            set --local strip_version (command strip --version | string match --regex --groups-only "(\d+\.\d+)")
+            printf "%s%s%s: %s %s%s%s\n" $command_color (command --search strip) $reset $strip_version $green $checkmark $reset
+        else
+            printf "strip: %snot installed %s%s\n" $red $xmark $reset
         end
 
         if command --query make
@@ -41,6 +50,13 @@ function lsc
             printf "%s%s%s: %s %s%s%s\n" $command_color (command --search gdb) $reset $gdb_version $green $checkmark $reset
         else
             printf "gdb: %snot installed %s%s\n" $red $xmark $reset
+        end
+
+        if command --query lldb
+            set --local lldb_version (command lldb --version | string match --regex --groups-only "(\d+\.\d+\.\d+)")
+            printf "%s%s%s: %s %s%s%s\n" $command_color (command --search lldb) $reset $lldb_version $green $checkmark $reset
+        else
+            printf "lldb: %snot installed %s%s\n" $red $xmark $reset
         end
 
         if command --query gcov
