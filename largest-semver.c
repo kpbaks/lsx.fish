@@ -1,5 +1,3 @@
-function __lsx.fish::compile_largest_semver
-	set -l program '
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -20,6 +18,16 @@ typedef struct {
   int patch;
 } semver;
 
+
+// typedef struct {
+//   char *ptr;
+//   size_t len;
+// } slice;
+
+void semver_print(const semver sv) {
+  printf("(semver) = { .major = %d, .minor = %d, .patch = %d }\n", sv.major, sv.minor, sv.patch);
+}
+
 semver semver_from_string(const char* version) {
   assert(version != NULL);
   semver sv = { .major = 0, .minor = 0, .patch = 0 };
@@ -32,23 +40,23 @@ semver semver_from_string(const char* version) {
   // major part
   int i = 0;
   bool found_dot = false;
-  while (version[i] != \'\0\') {
-    if (version[i] == \'.\') {
+  while (version[i] != '\0') {
+    if (version[i] == '.') {
       found_dot = true;
       break;
     }
     i++;
   }
   memcpy(temp, version, i);
-  temp[i] = \'\0\'; // Needed for atoi()
+  temp[i] = '\0'; // Needed for atoi()
   sv.major = atoi(temp);
   if (!found_dot) goto stop;
 
   found_dot = false;
-  i++; // Advance beyond the \'.\'
+  i++; // Advance beyond the '.'
   int j = i;
-  while (version[j] != \'\0\') {
-    if (version[j] == \'.\') {
+  while (version[j] != '\0') {
+    if (version[j] == '.') {
       found_dot = true;
       break;
     }
@@ -56,14 +64,14 @@ semver semver_from_string(const char* version) {
   }
 
   memcpy(temp, version + i, j - i);
-  temp[j - i] = \'\0\';
+  temp[j - i] = '\0';
   sv.minor = atoi(temp);
   if (!found_dot) goto stop;
   if (j == len) goto stop;
-  j++; // Advance beyond the \'.\'
+  j++; // Advance beyond the '.'
 
   memcpy(temp, version + j, len - j);
-  temp[len -j] = \'\0\';
+  temp[len -j] = '\0';
   sv.patch = atoi(temp);
 
   stop:
@@ -84,8 +92,55 @@ enum semver_comparison compare_semver(const semver sv1, const semver sv2) {
   return equal;
 }
 
+// void test() {
+//   {
+//     const semver sv = semver_from_string("");
+//     assert(sv.major == 0);
+//     assert(sv.minor == 0);
+//     assert(sv.patch == 0);
+//   }
+//   {
+//     const semver sv = semver_from_string("     ");
+//     assert(sv.major == 0);
+//     assert(sv.minor == 0);
+//     assert(sv.patch == 0);
+//   }
+//   {
+//     const semver sv = semver_from_string("1");
+//     assert(sv.major == 1);
+//     assert(sv.minor == 0);
+//     assert(sv.patch == 0);
+//   }
+//   {
+//     const semver sv = semver_from_string("0.1");
+//     assert(sv.major == 0);
+//     assert(sv.minor == 1);
+//     assert(sv.patch == 0);
+//   }
+//   {
+//     const semver sv = semver_from_string("0.0.1");
+//     assert(sv.major == 0);
+//     assert(sv.minor == 0);
+//     assert(sv.patch == 1);
+//   }
+//   {
+//     const semver sv = semver_from_string("10.11.12");
+//     assert(sv.major == 10);
+//     assert(sv.minor == 11);
+//     assert(sv.patch == 12);
+//   }
+//   {
+//     const semver sv = semver_from_string("13.1.9");
+//     assert(sv.major == 13);
+//     assert(sv.minor == 1);
+//     assert(sv.patch == 9);
+//   }
+// }
+
 int main(int argc, char **argv) {
- if (isatty(fileno(stdin))) {
+
+  // test();
+  if (isatty(fileno(stdin))) {
     fprintf(stderr, "ERROR: stdin is a tty. Input must be piped into the program.\n");
     return 2;
   }
@@ -108,33 +163,3 @@ int main(int argc, char **argv) {
   fprintf(stdout, "%d.%d.%d\n", largest_sv.major, largest_sv.minor, largest_sv.patch);
   return 0;
 }
-'
-	set -l program_path $__fish_user_data_dir/lsx/largest-semver.c
-	set -l exe $__fish_user_data_dir/lsx/largest-semver
-	command mkdir -p (path dirname $program_path)
-	test -f $exe; and return 0
-
-	if not test -f $program_path
-		echo "$program" > $program_path
-	end
-	set -l reset (set_color normal)
-	set -l green (set_color green)
-	if not test -f $exe
-		printf "%scompiling %s%s\n" $green (path basename $program_path) $reset
-		gcc -O3 -o $exe $program_path
-	end
-end
-
-function _lsx_install --on-event lsx_install
-    # Set universal variables, create bindings, and other initialization logic.
-	__lsx.fish::compile_largest_semver
-end
-
-function _lsx_update --on-event lsx_update
-	# Migrate resources, print warnings, and other update logic.
-	__lsx.fish::compile_largest_semver
-end
-
-function _lsx_uninstall --on-event lsx_uninstall
-	# Erase "private" functions, variables, bindings, and other uninstall logic.
-end
